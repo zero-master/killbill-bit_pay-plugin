@@ -139,6 +139,7 @@ PLATFORMS
   java
 
 DEPENDENCIES
+  activerecord-jdbc-adapter
   jbundler (~> 0.9.2)
   jdbc-mariadb (~> 1.1)
   jdbc-postgres (~> 9.4)
