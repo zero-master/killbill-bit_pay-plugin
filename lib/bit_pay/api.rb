@@ -103,10 +103,13 @@ module Killbill #:nodoc:
 
       def add_payment_method(kb_account_id, kb_payment_method_id, payment_method_props, set_default, properties, context)
         # Pass extra parameters for the gateway here
-        options = {}
-
-        properties = merge_properties(properties, options)
-        super(kb_account_id, kb_payment_method_id, payment_method_props, set_default, properties, context)
+        pm = BitPayPaymentMethod.new :kb_account_id => kb_account_id,
+                                     :kb_payment_method_id => kb_payment_method_id,
+                                     :kb_tenant_id => context.tenant_id,
+                                     :created_at => Time.now,
+                                     :updated_at => Time.now
+        pm.save!
+        pm
       end
 
       def delete_payment_method(kb_account_id, kb_payment_method_id, properties, context)
@@ -154,11 +157,11 @@ module Killbill #:nodoc:
         options = {}
         properties = merge_properties(properties, options)
 
-        # Add your custom static hidden tags here
+        # Add the BitPay API key to generate the invoice id
         options = {
-          :account_id => config[:bitpay][:api_key],
-          # Overload the order_id (passed as posData) (TODO fix OffsitePayments implementation)
-          :order_id => "#{kb_account_id};#{context.tenant_id}"
+            :account_id => config[:api_key],
+            # Overload the order_id (passed as posData) (TODO fix OffsitePayments implementation)
+            :order_id => "#{kb_account_id};#{context.tenant_id}"
         }
         descriptor_fields = merge_properties(descriptor_fields, options)
 
@@ -203,7 +206,7 @@ module Killbill #:nodoc:
       def process_notification(notification, properties, context)
         # Add the BitPay API key to retrieve the invoice
         options = {
-            :credential1 => config[:bitpay][:api_key]
+            :credential1 => config[:api_key]
         }
         properties = merge_properties(properties, options)
 
